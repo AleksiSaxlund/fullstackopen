@@ -14,8 +14,21 @@ mongoose.connect(url, { family: 4 })
   })
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    minlength: 3,
+    required: true
+  },
+  number: {
+    type: String,
+    required: true,
+    validate: {
+      validator: function(v) {
+        return v.length >= 8 && /^\d{2,3}-\d+$/.test(v)
+      },
+      message: props => `${props.value} ei ole sallittu puhelinnumero! Muodon on oltava esim. 09-1234556 tai 040-22334455.`
+    }
+  }
 })
 
 personSchema.set('toJSON', {
