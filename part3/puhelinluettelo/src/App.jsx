@@ -42,11 +42,12 @@ const App = () => {
           showNotification(`Updated the phone number of ${existingPerson.name}`)
           })
           .catch(error => {
-            showError(
-              `Information of ${existingPerson.name} has already been removed from the server`
-            )
-            setPersons(persons.filter(person => person.id !== id))
-            return
+            if (error.response && error.response.status === 400) {
+              showError(error.response.data.error)
+            } else {
+              showError(`Information of ${existingPerson.name} has already been removed from the server`)
+              setPersons(persons.filter(person => person.id !== id))
+            }
           })
       return
     }
@@ -61,8 +62,12 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
+        showNotification(`Added ${personObject.name}`)
         })
-    showNotification(`Added ${personObject.name}`)
+        .catch(error => {
+          showError(error.response.data.error)
+          return
+        })
   }
 
   const deletePerson = (id, name) => {
