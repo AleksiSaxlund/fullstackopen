@@ -1,9 +1,9 @@
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik1hdHRpIiwiaWQiOiI2YTE1NmNhNThjMzdhNWM4MzkyNzg1ZWMiLCJpYXQiOjE3Nzk3OTk3ODB9.TQkmOjxMi1j2B9RiymJ7f_GBscR8EfmKP-XnPklk75o
 
 {
-  "title": "otiskko12",
-  "author": "nimi22",
-  "url": "osote32",
-  "likes": "1"
+  "title": "toineasdasdn blogi kun on kirjautunut sisään user extractor middlewarella",
+  "author": "asdads",
+  "url": "osote3201asd"
 }

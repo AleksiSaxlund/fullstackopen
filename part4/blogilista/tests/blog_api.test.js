@@ -3,15 +3,34 @@ const { test, after, beforeEach, describe } = require('node:test')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
+const bcrypt = require('bcrypt')
 
 const helper = require('./test_helper')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
+let authenticatedAgent
 
 beforeEach(async () => {
+  await User.deleteMany({})
+  const passwordHash = await bcrypt.hash('salasana', 10)
+  const testUser = new User({ username: 'testerly', passwordHash })
+  const savedUser = await testUser.save()
+
   await Blog.deleteMany({})
-  await Blog.insertMany(helper.initialBlogs)
+  const blogsWithUser = helper.initialBlogs.map(blog => ({
+    ...blog,
+    user: savedUser._id
+  }))
+  await Blog.insertMany(blogsWithUser)
+
+  const loginResponse = await api
+    .post('/api/login')
+    .send({ username: 'testerly', password: 'salasana' })
+  
+  authenticatedAgent = supertest.agent(app)
+  authenticatedAgent.set('Authorization', `Bearer ${loginResponse.body.token}`)
 })
 
 describe('returned blogs', () => {
@@ -43,47 +62,50 @@ describe('returned blogs', () => {
 })
 
 describe('adding blogs', () => {
-  test('increases saved blog count', async () => {
-    await api
-      .post('/api/blogs')
-      .send(helper.newBlog)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
-    
-    const response = await api.get('/api/blogs')
+  describe('logged in', () => {
+    test('increases saved blog count', async () => {
+      await authenticatedAgent
+        .post('/api/blogs')
+        .send(helper.newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+      
+      const response = await api.get('/api/blogs')
 
-    assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
+      assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
+    })
+      
+    test('adding blog with no value on likes', async () => {
+      const response = await authenticatedAgent
+        .post('/api/blogs')
+        .send(helper.blogWithNoLikes)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+      
+      //const response = await api.get('/api/blogs')
+
+      assert.strictEqual(response.body.likes, 0)
+    })
+
+    test('adding blog with no title returns error', async () => {
+      const response = await authenticatedAgent
+        .post('/api/blogs')
+        .send(helper.blogWithNoTitle)
+        .expect(400)
+      
+      assert.strictEqual(response.status, 400)
+    })
+
+    test('adding blog with no url returns error', async () => {
+      const response = await authenticatedAgent
+        .post('/api/blogs')
+        .send(helper.blogWithNoUrl)
+        .expect(400)
+      
+      assert.strictEqual(response.status, 400)
+    })
   })
   
-  test('adding blog with no value on likes', async () => {
-    const response = await api
-      .post('/api/blogs')
-      .send(helper.blogWithNoLikes)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
-    
-    //const response = await api.get('/api/blogs')
-
-    assert.strictEqual(response.body.likes, 0)
-  })
-
-  test('adding blog with no title returns error', async () => {
-    const response = await api
-      .post('/api/blogs')
-      .send(helper.blogWithNoTitle)
-      .expect(400)
-    
-    assert.strictEqual(response.status, 400)
-  })
-
-  test('adding blog with no url returns error', async () => {
-    const response = await api
-      .post('/api/blogs')
-      .send(helper.blogWithNoUrl)
-      .expect(400)
-    
-    assert.strictEqual(response.status, 400)
-  })
 })
 
 describe('deleting blogs', () => {
@@ -91,7 +113,7 @@ describe('deleting blogs', () => {
     const notesAtStart = await helper.blogsInDb()
     const blogToDelete = notesAtStart[0]
 
-    await api
+    await authenticatedAgent
       .delete(`/api/blogs/${blogToDelete.id}`)
       .expect(204)
     
