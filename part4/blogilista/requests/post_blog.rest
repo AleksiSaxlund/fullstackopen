@@ -1,6 +1,6 @@
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik1hdHRpIiwiaWQiOiI2YTE1NmNhNThjMzdhNWM4MzkyNzg1ZWMiLCJpYXQiOjE3Nzk3OTk3ODB9.TQkmOjxMi1j2B9RiymJ7f_GBscR8EfmKP-XnPklk75o
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRpIiwiaWQiOiI2YTE5NTRlZGVkNTcwNTA0NTM0MjYzZmQiLCJpYXQiOjE3ODAwNDUwNTJ9.Rgazi87bEyaaN8NvylCZ4iS0EQRfINJVL6Ms_g44Mp0
 
 {
   "title": "toineasdasdn blogi kun on kirjautunut sisään user extractor middlewarella",

@@ -12,28 +12,28 @@ const User = require('../models/user')
 const api = supertest(app)
 let authenticatedAgent
 
-beforeEach(async () => {
-  await User.deleteMany({})
-  const passwordHash = await bcrypt.hash('salasana', 10)
-  const testUser = new User({ username: 'testerly', passwordHash })
-  const savedUser = await testUser.save()
-
-  await Blog.deleteMany({})
-  const blogsWithUser = helper.initialBlogs.map(blog => ({
-    ...blog,
-    user: savedUser._id
-  }))
-  await Blog.insertMany(blogsWithUser)
-
-  const loginResponse = await api
-    .post('/api/login')
-    .send({ username: 'testerly', password: 'salasana' })
-  
-  authenticatedAgent = supertest.agent(app)
-  authenticatedAgent.set('Authorization', `Bearer ${loginResponse.body.token}`)
-})
 
 describe('returned blogs', () => {
+  beforeEach(async () => {
+      await User.deleteMany({})
+      const passwordHash = await bcrypt.hash('salasana', 10)
+      const testUser = new User({ username: 'testerly', passwordHash })
+      const savedUser = await testUser.save()
+
+      await Blog.deleteMany({})
+      const blogsWithUser = helper.initialBlogs.map(blog => ({
+        ...blog,
+        user: savedUser._id
+      }))
+      await Blog.insertMany(blogsWithUser)
+
+      const loginResponse = await api
+        .post('/api/login')
+        .send({ username: 'testerly', password: 'salasana' })
+      
+      authenticatedAgent = supertest.agent(app)
+      authenticatedAgent.set('Authorization', `Bearer ${loginResponse.body.token}`)
+    })
   test('blogs are returned as json', async () => {
     await api
       .get('/api/blogs')
@@ -62,7 +62,38 @@ describe('returned blogs', () => {
 })
 
 describe('adding blogs', () => {
+
+  test.only('fails with 401 if token is missing', async () => {
+    await api
+      .post('/api/blogs')
+      .send(helper.newBlog)
+      .expect(401)
+    
+    const response = await api.get('/api/blogs')
+    assert.strictEqual(response.body.length, helper.initialBlogs.length)
+  })
+
   describe('logged in', () => {
+    beforeEach(async () => {
+      await User.deleteMany({})
+      const passwordHash = await bcrypt.hash('salasana', 10)
+      const testUser = new User({ username: 'testerly', passwordHash })
+      const savedUser = await testUser.save()
+
+      await Blog.deleteMany({})
+      const blogsWithUser = helper.initialBlogs.map(blog => ({
+        ...blog,
+        user: savedUser._id
+      }))
+      await Blog.insertMany(blogsWithUser)
+
+      const loginResponse = await api
+        .post('/api/login')
+        .send({ username: 'testerly', password: 'salasana' })
+      
+      authenticatedAgent = supertest.agent(app)
+      authenticatedAgent.set('Authorization', `Bearer ${loginResponse.body.token}`)
+    })
     test('increases saved blog count', async () => {
       await authenticatedAgent
         .post('/api/blogs')
@@ -109,6 +140,26 @@ describe('adding blogs', () => {
 })
 
 describe('deleting blogs', () => {
+  beforeEach(async () => {
+    await User.deleteMany({})
+    const passwordHash = await bcrypt.hash('salasana', 10)
+    const testUser = new User({ username: 'testerly', passwordHash })
+    const savedUser = await testUser.save()
+
+    await Blog.deleteMany({})
+    const blogsWithUser = helper.initialBlogs.map(blog => ({
+      ...blog,
+      user: savedUser._id
+    }))
+    await Blog.insertMany(blogsWithUser)
+
+    const loginResponse = await api
+      .post('/api/login')
+      .send({ username: 'testerly', password: 'salasana' })
+    
+    authenticatedAgent = supertest.agent(app)
+    authenticatedAgent.set('Authorization', `Bearer ${loginResponse.body.token}`)
+  })
   test('deletes blog from database', async () => {
     const notesAtStart = await helper.blogsInDb()
     const blogToDelete = notesAtStart[0]
