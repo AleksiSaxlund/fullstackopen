@@ -21,7 +21,7 @@ const App = () => {
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs([...blogs].sort((a, b) => b.likes - a.likes))
-    )  
+    )
   }, [])
 
   useEffect(() => {
@@ -64,8 +64,8 @@ const App = () => {
         setBlogs(blogs.concat(returnedBlog))
         showNotification(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`)
         BlogFormRef.current.toggleVisibility()
-      }).catch(error => {
-      showError('failed to create a new blog')
+      }).catch(() => {
+        showError('failed to create a new blog')
       })
   }
 
@@ -74,11 +74,11 @@ const App = () => {
       .update(blogObject)
       .then(returnedBlog => {
         setBlogs(blogs
-          .map(b =>b.id !== blogObject.id ? b : returnedBlog)
+          .map(b => b.id !== blogObject.id ? b : returnedBlog)
           .sort((a, b) => b.likes - a.likes)
         )
         showNotification(`Liked blog ${returnedBlog.title}`)
-      }).catch(error => {
+      }).catch(() => {
         showError('failed to like blog')
       })
   }
@@ -92,7 +92,7 @@ const App = () => {
           .sort((a, b) => b.likes - a.likes)
         )
         showNotification(`removed blog ${returnedBlog.title} by ${returnedBlog.author}`)
-      }).catch(error => {
+      }).catch(() => {
         showError('failed to remove blog')
       })
   }
