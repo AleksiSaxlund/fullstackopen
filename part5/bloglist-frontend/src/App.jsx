@@ -131,10 +131,10 @@ const App = () => {
       <Notification message={notificationMessage} />
       <Error message={errorMessage} />
       <h2>blogs</h2>
-      <label>
+      <div>
         {user.name} logged in
         <button onClick={handleLogout}>logout</button>
-      </label>
+      </div>
       <Togglable buttonLabel="create new blog" ref={BlogFormRef}>
         <CreateBlogForm
           createBlog={addBlog}
