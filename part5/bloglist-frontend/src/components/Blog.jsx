@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Paper, Button, Typography } from '@mui/material'
 
 const Blog = ({ blog, user, updateBlog, deleteBlog }) => {
   console.log(user)
@@ -26,29 +27,37 @@ const Blog = ({ blog, user, updateBlog, deleteBlog }) => {
     return null
   }
 
-  return (
+  return(
     <div data-testid='blog-item'>
-      <h2>{blog.author}: {blog.title}</h2>
-
-      <div>
-        <div>
+      <Paper variant='outlined' sx={{ p: 3, mt: 3, maxWidth: 600, borderRadius: 2 }}>
+        <Typography variant='h6'>
+          {blog.title}
+        </Typography>
+        <Typography variant='subtitle1'>
+          by {blog.author}
+        </Typography>
+        <Typography variant="body1">
           <a href={blog.url} target="_blank" rel="noreferrer">
             {blog.url}
           </a>
-        </div>
-        <div>
-          likes {blog.likes}
-          {user && <button onClick={() => addLike()}>like</button>}
-        </div>
-        <div>
+        </Typography>
+        <Typography variant='subtitle1'>
           Added by {blog.user.name}
-        </div>
-        {user && user.username === blog.user.username && (
-          <div>
-            <button onClick={() => removeBlog()}>remove</button>
-          </div>
+        </Typography>
+        <Typography>
+          {blog.likes} likes
+        </Typography>
+        {user && (
+          <Button variant='outlined' onClick={addLike}>
+            like
+          </Button>
         )}
-      </div>
+        {user && user.username === blog.user.username && (
+          <Button variant="outlined" color="error" onClick={removeBlog}>
+            Remove
+          </Button>
+        )}
+      </Paper>
     </div>
   )
 }

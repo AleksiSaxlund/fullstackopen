@@ -12,6 +12,7 @@ import {
   BrowserRouter as Router,
   Routes, Route, Link, useMatch
 } from 'react-router-dom'
+import { Container, AppBar, Button, Toolbar, Typography } from '@mui/material'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -119,48 +120,54 @@ const App = () => {
     }, 5000)
   }
 
-  const padding = {
-    padding: 5
-  }
+  const style = { '&hover': { bgcolor: 'rgba(255,255,255,0.3)' } }
 
   return(
-    <div>
+    <Container>
       <div>
-        <Link style={padding} to="/">blogs</Link>
+        <div>
+          <AppBar position="static">
+            <Toolbar>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Blog App
+              </Typography>
+              <Button color="inherit" component={Link} to="/" sx={style}>blogs</Button>
+              {user ? (
+                <>
+                  <Button color="inherit" component={Link} to="/create" sx={style}>new blog</Button>
+                  <Button color="inherit" onClick={handleLogout} sx={style}>logout</Button>
+                </>
+              ) : (
+                <Button color="inherit" component={Link} to="/login" sx={style}>login</Button>
+              )}
+            </Toolbar>
+          </AppBar>
+        </div>
 
-        {user ? (
-          <>
-            <Link style={padding} to="/create">new blog</Link>
-            <button style={padding} onClick={handleLogout}>logout</button>
-          </>
-        ) : (
-          <Link style={padding} to="/login">login</Link>
-        )}
+        <Notification message={notificationMessage}/>
+        <Error message={errorMessage} />
+
+        <Routes>
+          <Route path="/" element={
+            <BlogList blogs={blogs} />
+          } />
+          <Route path="/login" element={
+            <LoginForm handleLogin={handleLogin} />
+          } />
+          <Route path="/create" element={
+            <CreateBlogForm createBlog={addBlog} />
+          } />
+          <Route path="/blogs/:id" element={
+            <Blog
+              blog={blog}
+              user={user}
+              updateBlog={updateBlog}
+              deleteBlog={deleteBlog}
+            />
+          } />
+        </Routes>
       </div>
-
-      <Notification message={notificationMessage}/>
-      <Error message={errorMessage} />
-
-      <Routes>
-        <Route path="/" element={
-          <BlogList blogs={blogs} />
-        } />
-        <Route path="/login" element={
-          <LoginForm handleLogin={handleLogin} />
-        } />
-        <Route path="/create" element={
-          <CreateBlogForm createBlog={addBlog} />
-        } />
-        <Route path="/blogs/:id" element={
-          <Blog
-            blog={blog}
-            user={user}
-            updateBlog={updateBlog}
-            deleteBlog={deleteBlog}
-          />
-        } />
-      </Routes>
-    </div>
+    </Container>
   )
 }
 
