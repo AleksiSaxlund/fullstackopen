@@ -1,16 +1,10 @@
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Blog = ({ blog, user, updateBlog, deleteBlog }) => {
-  const [infoVisible, setInfoVisible] = useState(false)
   console.log(user)
   console.log(blog)
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
-  }
+
+  const navigate = useNavigate()
 
   const addLike = () => {
     updateBlog({
@@ -24,37 +18,37 @@ const Blog = ({ blog, user, updateBlog, deleteBlog }) => {
   const removeBlog = () => {
     if (confirm(`Remove blog ${blog.title} by ${blog.author}?`)) {
       deleteBlog(blog.id)
+      navigate('/')
     }
   }
 
-  return (
-    <div style={blogStyle} data-testid='blog-item'>
-      <div>
-        {blog.title} {blog.author}
-        <button onClick={() => setInfoVisible(!infoVisible)}>
-          {infoVisible ? 'hide' : 'view'}
-        </button>
-      </div>
+  if (!blog) {
+    return null
+  }
 
-      {infoVisible && (
+  return (
+    <div data-testid='blog-item'>
+      <h2>{blog.author}: {blog.title}</h2>
+
+      <div>
         <div>
-          <div>
+          <a href={blog.url} target="_blank" rel="noreferrer">
             {blog.url}
-          </div>
-          <div>
-            likes {blog.likes}
-            <button onClick={() => addLike()}>like</button>
-          </div>
-          <div>
-            {blog.user.name}
-          </div>
-          {user.username === blog.user.username && (
-            <div>
-              <button onClick={() => removeBlog()}>remove</button>
-            </div>
-          )}
+          </a>
         </div>
-      )}
+        <div>
+          likes {blog.likes}
+          {user && <button onClick={() => addLike()}>like</button>}
+        </div>
+        <div>
+          Added by {blog.user.name}
+        </div>
+        {user && user.username === blog.user.username && (
+          <div>
+            <button onClick={() => removeBlog()}>remove</button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

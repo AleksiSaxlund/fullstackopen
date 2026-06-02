@@ -2,16 +2,19 @@ import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import LoginForm  from './components/LoginForm'
 import CreateBlogForm from './components/createBlogForm'
+import BlogList from './components/BlogList'
 import Notification from './components/Notification'
 import Error from './components/Error'
 import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import {
+  BrowserRouter as Router,
+  Routes, Route, Link, useMatch
+} from 'react-router-dom'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [notificationMessage, setNotificationMessage] = useState(null)
@@ -33,8 +36,7 @@ const App = () => {
     }
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async ({ username, password }) => {
     try {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem(
@@ -42,8 +44,7 @@ const App = () => {
       )
       blogService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
+
       showNotification(`logged in as ${user.name}`)
     } catch {
       showError('wrong username or password')
@@ -84,18 +85,25 @@ const App = () => {
   }
 
   const deleteBlog = (blogId) => {
+    const blogToRemove = blogs.find(b => b.id === blogId)
+
     blogService
       .remove(blogId)
-      .then(returnedBlog => {
+      .then(() => {
         setBlogs(blogs
           .filter(b => b.id !== blogId)
           .sort((a, b) => b.likes - a.likes)
         )
-        showNotification(`removed blog ${returnedBlog.title} by ${returnedBlog.author}`)
+        showNotification(`removed blog ${blogToRemove.title} by ${blogToRemove.author}`)
       }).catch(() => {
         showError('failed to remove blog')
       })
   }
+
+  const match = useMatch('/blogs/:id')
+  const blog = match
+    ? blogs.find(b => b.id === match.params.id)
+    : null
 
   const showNotification = message => {
     setNotificationMessage(message)
@@ -111,44 +119,47 @@ const App = () => {
     }, 5000)
   }
 
-  if (user === null) {
-    return(
-      <div>
-        <Notification message={notificationMessage} />
-        <Error message={errorMessage} />
-        <LoginForm
-          handleLogin={handleLogin}
-          setUsername={setUsername}
-          setPassword={setPassword}
-          password={password}
-        />
-      </div>
-    )
+  const padding = {
+    padding: 5
   }
 
-  return (
+  return(
     <div>
-      <Notification message={notificationMessage} />
-      <Error message={errorMessage} />
-      <h2>blogs</h2>
       <div>
-        {user.name} logged in
-        <button onClick={handleLogout}>logout</button>
+        <Link style={padding} to="/">blogs</Link>
+
+        {user ? (
+          <>
+            <Link style={padding} to="/create">new blog</Link>
+            <button style={padding} onClick={handleLogout}>logout</button>
+          </>
+        ) : (
+          <Link style={padding} to="/login">login</Link>
+        )}
       </div>
-      <Togglable buttonLabel="create new blog" ref={BlogFormRef}>
-        <CreateBlogForm
-          createBlog={addBlog}
-        />
-      </Togglable>
-      {blogs.map(blog =>
-        <Blog
-          key={blog.id}
-          blog={blog}
-          user={user}
-          updateBlog={updateBlog}
-          deleteBlog={deleteBlog}
-        />
-      )}
+
+      <Notification message={notificationMessage}/>
+      <Error message={errorMessage} />
+
+      <Routes>
+        <Route path="/" element={
+          <BlogList blogs={blogs} />
+        } />
+        <Route path="/login" element={
+          <LoginForm handleLogin={handleLogin} />
+        } />
+        <Route path="/create" element={
+          <CreateBlogForm createBlog={addBlog} />
+        } />
+        <Route path="/blogs/:id" element={
+          <Blog
+            blog={blog}
+            user={user}
+            updateBlog={updateBlog}
+            deleteBlog={deleteBlog}
+          />
+        } />
+      </Routes>
     </div>
   )
 }

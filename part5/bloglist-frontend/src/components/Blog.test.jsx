@@ -1,10 +1,11 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import Blog from './Blog'
 
 const blogToShow = {
   title: 'Testing blog',
-  Author: 'Testiina Testinen',
+  author: 'Testiina Testinen',
   url: 'www.com',
   likes: 8,
   user: {
@@ -20,25 +21,86 @@ const loggedUser = {
   username: 'Testiina'
 }
 
+const OtherLoggedUser = {
+  name: 'Testerly Testings',
+  username: 'Testerly'
+}
+
 test('renders title', () => {
 
-  render(<Blog blog={blogToShow} user={loggedUser} />)
+  render(
+    <MemoryRouter>
+      <Blog blog={blogToShow} user={loggedUser} />
+    </MemoryRouter>
+  )
 
-  const element = screen.getByText('Testing blog')
+  const element = screen.getByRole('heading', { name: /Testiina Testinen: Testing blog/ })
   expect(element).toBeDefined()
 })
 
-test('clicking the view button shows all info', async () => {
+test('logged out user can not see like or remove buttons', async () => {
 
-  render(<Blog blog={blogToShow} user={loggedUser} />)
+  render(
+    <MemoryRouter>
+      <Blog blog={blogToShow} user={null} />
+    </MemoryRouter>
+  )
 
-  const user = userEvent.setup()
-  const button = screen.getByText('view')
-  await user.click(button)
+  const likeButton = screen.queryByRole('button', { name: 'like' })
+  const removeButton = screen.queryByRole('button', { name: 'remove' })
 
   const url = screen.getByText('www.com')
   const likes = screen.getByText('likes 8')
-  const owner = screen.getByText('Testiina Testinen')
+  const owner = screen.getByRole('heading', { name: /Testiina Testinen: Testing blog/ })
+
+  expect(likeButton).not.toBeInTheDocument()
+  expect(removeButton).not.toBeInTheDocument()
+
+  expect(url).toBeDefined()
+  expect(likes).toBeDefined()
+  expect(owner).toBeDefined()
+})
+
+test('logged in user can see only like button when not creator of blog', async () => {
+
+  render(
+    <MemoryRouter>
+      <Blog blog={blogToShow} user={OtherLoggedUser} />
+    </MemoryRouter>
+  )
+
+  const likeButton = screen.queryByRole('button', { name: 'like' })
+  const removeButton = screen.queryByRole('button', { name: 'remove' })
+
+  const url = screen.getByText('www.com')
+  const likes = screen.getByText('likes 8')
+  const owner = screen.getByRole('heading', { name: /Testiina Testinen: Testing blog/ })
+
+  expect(likeButton).toBeInTheDocument()
+  expect(removeButton).not.toBeInTheDocument()
+
+  expect(url).toBeDefined()
+  expect(likes).toBeDefined()
+  expect(owner).toBeDefined()
+})
+
+test('logged in user can see like and remove buttons when creator of blog', async () => {
+
+  render(
+    <MemoryRouter>
+      <Blog blog={blogToShow} user={loggedUser} />
+    </MemoryRouter>
+  )
+
+  const likeButton = screen.queryByRole('button', { name: 'like' })
+  const removeButton = screen.queryByRole('button', { name: 'remove' })
+
+  const url = screen.getByText('www.com')
+  const likes = screen.getByText('likes 8')
+  const owner = screen.getByRole('heading', { name: /Testiina Testinen: Testing blog/ })
+
+  expect(likeButton).toBeInTheDocument()
+  expect(removeButton).toBeInTheDocument()
 
   expect(url).toBeDefined()
   expect(likes).toBeDefined()
@@ -49,10 +111,11 @@ test('liking blog twice calls updateBlog twice', async () => {
   const user = userEvent.setup()
   const updateBlog = vi.fn()
 
-  render(<Blog blog={blogToShow} user={loggedUser} updateBlog={updateBlog} />)
-
-  const viewButton = screen.getByText('view')
-  await user.click(viewButton)
+  render(
+    <MemoryRouter>
+      <Blog blog={blogToShow} user={loggedUser} updateBlog={updateBlog} />
+    </MemoryRouter>
+  )
 
   const likeButton = screen.getByText('like')
   await user.click(likeButton)
