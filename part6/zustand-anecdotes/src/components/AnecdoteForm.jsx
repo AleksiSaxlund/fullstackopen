@@ -1,14 +1,16 @@
-import { useAnecdoteActions } from '../store'
+import { useAnecdoteActions, useNotificationActions } from '../store'
+import anecdoteService from '../services/anecdotes'
 
 const AnecdoteForm = () => {
   const { add } = useAnecdoteActions()
+  const { setNotification } = useNotificationActions()
 
-  const generateId = () => Number((Math.random() * 1000000).toFixed(0))
-
-  const addAnecdote = (e) => {
+  const addAnecdote = async (e) => {
     e.preventDefault()
     const content = e.target.anecdote.value
-    add({ id: generateId(), content, votes: 0 })
+    const newAnecdote = await anecdoteService.createNew(content)
+    add(newAnecdote)
+    setNotification(`Added anecdote '${content}' successfully`)
     e.target.reset()
   }
 
