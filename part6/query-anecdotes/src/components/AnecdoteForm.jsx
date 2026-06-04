@@ -1,14 +1,20 @@
 import { useAnecdotes } from "../hooks/useNotes"
-
+import NotificationContext from "../NotificationContext"
+import useNotification from "../hooks/useNotify"
 
 const AnecdoteForm = () => {
   const { addAnecdote: addAnecdoteToServer } = useAnecdotes()
+  const { setNotification } = useNotification()
 
   const onCreate = (event) => {
     event.preventDefault()
     const content = event.target.anecdote.value
     event.target.reset()
     addAnecdoteToServer(content)
+    setNotification(`Added anecdote ${content}`)
+    setTimeout(() => {
+      setNotification(null)
+    }, 5000)
   }
 
   return (
